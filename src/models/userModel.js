@@ -512,11 +512,14 @@ class UserModel {
                             RETURNING *
                         `;
 
+                        // Usar el ID del usuario que se está editando como created_by si no hay uno válido
+                        const createdBy = userData.updated_by || userData.created_by || userId;
+                        
                         const roleValues = [
                             userId,                    // app_user_id
                             role.id,                   // role_id
                             true,                      // is_active
-                            userData.updated_by || userData.created_by // created_by
+                            createdBy                  // created_by
                         ];
 
                         const roleInsertResult = await db.query(insertRoleQuery, roleValues);
