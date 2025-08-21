@@ -326,7 +326,7 @@ async function login(req, res) {
 
 
         // 4. Verificar si el usuario esta activo   
-        if (user.is_active === false) {
+        if (user.status === 'inactivo') {
             // Obtener el UUID del tipo de evento para usuario inactivo
             const eventType = await EventTypeModel.findByCode('login_failed');
             // Detectar IP real y país

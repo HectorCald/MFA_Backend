@@ -16,9 +16,6 @@ const connectionOptions = process.env.DATABASE_URL
       ssl: process.env.DB_SSL === 'false',
     };
 
-console.log('🔧 Intentando conectar a PostgreSQL...');
-console.log('🔧 Configuración:', process.env.DATABASE_URL ? 'DATABASE_URL' : 'Variables individuales');
-
 let pool;
 try {
     pool = new Pool(connectionOptions);

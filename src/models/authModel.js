@@ -30,7 +30,7 @@ async function findUserByEmail(email) {
             app_user.id, 
             app_user.person_id,
             app_user.password_hash,
-            app_user.is_active,
+            app_user.status,
             app_user.user_type,
             app_user.failed_login_attempts,
             app_user.blocked_until,
@@ -51,7 +51,7 @@ async function findUserByEmail(email) {
         LEFT JOIN role_permission ON role.id = role_permission.role_id
         LEFT JOIN permission ON role_permission.permission_id = permission.id
         WHERE app_user.person_id = $1
-        GROUP BY app_user.id, app_user.person_id, app_user.password_hash, app_user.is_active, 
+        GROUP BY app_user.id, app_user.person_id, app_user.password_hash, app_user.status, 
                  app_user.user_type, app_user.failed_login_attempts, app_user.blocked_until, 
                  role.name, role.id
     `;
@@ -74,7 +74,7 @@ async function findUserByEmail(email) {
         last_name: person.last_name,
         password_hash: user.password_hash,
         user_type: user.user_type,
-        is_active: user.is_active,
+        status: user.status,
         role_name: user.role_name,
         role_id: user.role_id,
         permissions: user.permissions,

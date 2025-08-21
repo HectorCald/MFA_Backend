@@ -3,8 +3,11 @@ const bcrypt = require('bcrypt');
 
 class UserModel {
     // Crear usuario
-    static async create(personData) {
+    static async create(personData, userId) {
         try {
+            // El controlador ya pasó el ID del usuario autenticado
+            const authenticatedUser = { id: userId };
+
             // Insertar en person
             const query = `
                 INSERT INTO person (
@@ -35,7 +38,7 @@ class UserModel {
                 personData.paisResidenciaUsuario,   // country_id
                 personData.ciudadUsuario,           // city_id
                 true,                               // is_active
-                personData.created_by                // created_by (ID del usuario que crea)
+                authenticatedUser.id  // created_by del usuario autenticado del token
             ];
 
 
@@ -51,7 +54,7 @@ class UserModel {
             // Insertar en app_user
             const query2 = `
                 INSERT INTO app_user (
-                    person_id, password_hash, user_type, is_active, created_by, created_at
+                    person_id, password_hash, user_type, status, created_by, created_at
                 ) VALUES ($1, $2, $3, $4, $5, NOW())
                 RETURNING *
             `;
@@ -60,8 +63,8 @@ class UserModel {
                 personId,                                                           // person_id
                 hashedPassword,                                                    // password_hash (encriptado)
                 'interno',                                                        // user_type
-                true,                                                             // is_active
-                personData.created_by                                              // created_by
+                'activo',                                                             // is_active
+                authenticatedUser.id                                              // created_by del usuario autenticado
             ];
 
             const result2 = await db.query(query2, values2);
@@ -102,7 +105,7 @@ class UserModel {
                         result2.rows[0].id,    // app_user_id
                         role.id,                // role_id
                         true,                   // is_active
-                        personData.created_by   // created_by
+                        authenticatedUser.id   // created_by del usuario autenticado
                     ];
 
                     const result3 = await db.query(query3, values3);
@@ -135,7 +138,7 @@ class UserModel {
                     au.id as user_id,
                     au.password_hash,
                     au.user_type,
-                    au.is_active as user_is_active,
+                    au.status as user_status,
                     au.last_login_at,
                     au.failed_login_attempts,
                     au.last_failed_login_at,
@@ -273,21 +276,28 @@ class UserModel {
             await db.query('BEGIN');
 
             try {
-                // 1. Eliminar roles del usuario (app_user_role)
+                // 1. Eliminar registros de audit_log que referencian al usuario
+                const deleteAuditLogQuery = `
+                    DELETE FROM audit_log 
+                    WHERE app_user_id = $1 OR performed_by_id = $1
+                `;
+                await db.query(deleteAuditLogQuery, [userId]);
+
+                // 2. Eliminar roles del usuario (app_user_role)
                 const deleteRolesQuery = `
                     DELETE FROM app_user_role 
                     WHERE app_user_id = $1
                 `;
                 await db.query(deleteRolesQuery, [userId]);
 
-                // 2. Eliminar el usuario (app_user)
+                // 3. Eliminar el usuario (app_user)
                 const deleteUserQuery = `
                     DELETE FROM app_user 
                     WHERE id = $1
                 `;
                 await db.query(deleteUserQuery, [userId]);
 
-                // 3. Eliminar la persona asociada
+                // 4. Eliminar la persona asociada
                 const deletePersonQuery = `
                     DELETE FROM person 
                     WHERE id = $1
@@ -604,7 +614,7 @@ class UserModel {
             }
     
             const query = `
-                UPDATE app_user SET is_active = false WHERE id = $1
+                UPDATE app_user SET status = 'inactivo' WHERE id = $1
                 RETURNING *
             `;
             const result = await db.query(query, [userId]);
@@ -635,7 +645,7 @@ class UserModel {
             }
     
             const query = `
-                UPDATE app_user SET is_active = true WHERE id = $1
+                UPDATE app_user SET status = 'activo' WHERE id = $1
                 RETURNING *
             `;
             const result = await db.query(query, [userId]);

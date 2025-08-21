@@ -10,7 +10,7 @@ class UserController {
             const userData = req.body;
 
             // Crear el usuario
-            const newUser = await UserModel.create(userData);
+            const newUser = await UserModel.create(userData, req.user.id);
 
             // ✅ Registrar en audit log - Usuario creado
             try {
