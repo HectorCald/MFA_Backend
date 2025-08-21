@@ -218,7 +218,7 @@ class PersonModel {
                     c3.name as dni_country_name,
                     bc.name as business_client_name
                 FROM person p
-                LEFT JOIN business_person_role bpr ON p.id = bpr.person_id AND bpr.is_active = true
+                LEFT JOIN business_person_role bpr ON p.id = bpr.person_id
                 LEFT JOIN business_client bc ON bpr.business_client_id = bc.id AND bc.is_active = true
                 LEFT JOIN country c1 ON p.country_id = c1.id
                 LEFT JOIN city c2 ON p.city_id = c2.id
@@ -273,7 +273,7 @@ class PersonModel {
                     c3.name as dni_country_name,
                     bc.name as business_client_name
                 FROM person p
-                LEFT JOIN business_person_role bpr ON p.id = bpr.person_id AND bpr.is_active = true
+                LEFT JOIN business_person_role bpr ON p.id = bpr.person_id
                 LEFT JOIN business_client bc ON bpr.business_client_id = bc.id AND bc.is_active = true
                 LEFT JOIN country c1 ON p.country_id = c1.id
                 LEFT JOIN city c2 ON p.city_id = c2.id

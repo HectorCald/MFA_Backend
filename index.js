@@ -20,14 +20,19 @@ app.use('/api', apiRoutes);
 const errorHandler = require('./src/middleware/errorHandler');
 app.use(errorHandler);
 
+// Conexión a DB y ruta de prueba raíz (como en tu snippet)
+const db = require('./src/config/db');
+app.get('/', async (req, res) => {
+    try {
+        const result = await db.query('SELECT NOW()');
+        res.send(`Servidor funcionando ✅ - Hora DB: ${result.rows[0].now}`);
+    } catch (err) {
+        res.status(500).send(`Error DB: ${err.message}`);
+    }
+});
 
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor escuchando en puerto ${PORT}`);
 });
-const db = require('./src/config/db');
-
-db.query('SELECT NOW()')
-  .then(res => console.log('Hora actual en PostgreSQL:', res.rows[0]))
-  .catch(err => console.error('Error al conectar a PostgreSQL', err));
